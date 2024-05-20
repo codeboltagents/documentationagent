@@ -3,50 +3,96 @@ const { readFileSync } = require("fs");
 
 const { compile } = require("handlebars");
 
-const writeDocumentation = async (nodeTypeInfo) => {
-    let templatePath = `${__dirname}/prompt.handlebars`;
-  const PROMPT = readFileSync(templatePath, "utf-8").trim();
-  let template = compile(PROMPT);
-  let renderedTemplate = template({ nodeTypeInfo });
-  console.log(renderedTemplate);
+const writeDocumentation = async (tree) => {
+    // typeof(tree)
+    let sourceCode= JSON.stringify(tree.input);
+    return
+    // let templatePath = `${__dirname}/prompt.handlebars`;
+    // const PROMPT = readFileSync(templatePath, "utf-8").trim();
+    // let template = compile(PROMPT);
+    // let renderedTemplate = template({ nodeTypeInfo:sourceCode });
+    // console.log(renderedTemplate);
 
-  const llmresponse = await codebolt.llm.inference(renderedTemplate);
-  console.log(llmresponse);
-  
-  let response = llmresponse.message.trim();
+    // const llmresponse = await codebolt.llm.inference(renderedTemplate);
+    // console.log(llmresponse);
 
-        let start = response.indexOf("~~~") + 3;
-        let end = response.lastIndexOf("~~~");
-        response = response.slice(start, end).trim();
-        response = response.trim();
+    // let response = llmresponse.message.trim();
+    // let start = response.indexOf("~~~") + 3;
+    // let end = response.lastIndexOf("~~~");
+    // response = response.slice(start, end).trim();
+    // response = response.trim();
+    // // console.log(response);
+    // const comments = [];
+    // let current_function = null;
+    // let current_comment = [];
+    // let code_block = false;
 
-        const result = [];
-        let current_file = null;
-        let current_code = [];
-        let code_block = false;
+    // for (const line of response.split("\n")) {
+    //     if (line.startsWith("Function:")) {
+    //         if (current_function && current_comment.length) {
+    //             comments.push({ functionName: current_function, jsDoc: current_comment.join("\n") });
+    //         }
+    //         current_function = line.split("`")[1].trim();
+    //         current_comment = [];
+    //         code_block = false;
+    //     } else if (line.startsWith("```")) {
+    //         code_block = !code_block;
+    //     } else if (code_block) {
+    //         current_comment.push(line);
+    //     }
+    // }
 
-        for (const line of response.split("\n")) {
-            if (line.startsWith("File: ")) {
-                if (current_file && current_code.length) {
-                    result.push({file: current_file, code: current_code.join("\n")});
-                }
-                current_file = line.split("`")[1].trim();
-                current_code = [];
-                code_block = false;
-            } else if (line.startsWith("```")) {
-                code_block = !code_block;
+    // if (current_function && current_comment.length) {
+    //     comments.push({ functionName: current_function, jsDoc: current_comment.join("\n") });
+    // }
+    
+
+    /**
+     * changed by ravi
+     */
+
+
+
+
+
+
+    const commentInsertions = [];
+
+    tree.rootNode.descendantsOfType('function_declaration').forEach(node => {
+        const functionName = node.childForFieldName('name').text;
+        console.log(functionName)
+        const commentIndex = comments.findIndex(comment => comment.functionName === functionName);
+        console.log(commentIndex)
+
+        if (commentIndex !== -1) {
+            const newJsDoc = comments[commentIndex].jsDoc;
+            const previousNode = node.previousNamedSibling;
+
+            if (previousNode && previousNode.type === 'comment') {
+                // Update existing comment
+                const startIndex = previousNode.startIndex;
+                const endIndex = previousNode.endIndex;
+                sourceCode = sourceCode.slice(0, startIndex) + newJsDoc + sourceCode.slice(endIndex);
             } else {
-                current_code.push(line);
+                // Note the position for new comment
+                const functionStartLine = node.startPosition.row;
+                commentInsertions.push({ line: functionStartLine, comment: newJsDoc });
             }
         }
+    });
 
-        if (current_file && current_code.length) {
-            result.push({file: current_file, code: current_code.join("\n")});
-        }
-        for (const file of result) {
-            await codebolt.fs.createFile(file.file,file.code,null);
-        }
+    // Add new comments at the noted positions
+    if (commentInsertions.length > 0) {
+        const lines = sourceCode.split('\n');
+        commentInsertions.sort((a, b) => b.line - a.line); // Sort in reverse order to avoid messing up line numbers
 
+        commentInsertions.forEach(insertion => {
+            lines.splice(insertion.line, 0, insertion.comment);
+        });
+
+        sourceCode = lines.join('\n');
+        console.log(sourceCode);
+    }
 };
 
 module.exports = { writeDocumentation };
