@@ -9,20 +9,11 @@ async function execute() {
   const { projectPath } = await codebolt.project.getProjectPath();
   console.log(projectPath);
   const { payload } = await codebolt.codeutils.getJsTree('/Users/ravirawat/Desktop/nodeApp/index.js');
-// let serializedJavascript=payload
-  // let trees = JSON.parse(payload);
-  // console.log(typeof trees)
- // let trees = eval('(' + serializedJavascript + ')'); // Parse the payload string to a JavaScript object
-  // let trees = serialize.deserialize(payload);
+
   payload.forEach((tree) => {
-    // console.log(tree)
-    // tree = eval('(' + tree + ')')
-
-    console.log(tree.rootNode);
-    // writeDocumentation(tree);
+ 
+    writeDocumentation(tree,projectPath);
   });
-
-  // const readFile= await codebolt.fs.readFile("index.js", filePath: string)
 }
 (async () => {
   await execute();
