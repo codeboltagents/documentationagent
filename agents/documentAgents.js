@@ -1,18 +1,21 @@
 const codebolt = require("@codebolt/codeboltjs").default;
 const { readFileSync } = require("fs");
-
 const { compile } = require("handlebars");
 const path = require("path");
-
 const writeDocumentation = async (tree,projectPath) => {
     // typeof(tree)
+    let filePath= tree.rootNode.path;
+    const relativeFilePath = path.relative(projectPath, filePath);
+
+    codebolt.chat.sendMessage("I am going to create documentation for this file "+relativeFilePath);
+
     let sourceCode= tree.input;
     // console.log(sourceCode);
-    let filePath= tree.rootNode.path;
     // return
     let templatePath = `${__dirname}/prompt.handlebars`;
     const PROMPT = readFileSync(templatePath, "utf-8").trim();
     let template = compile(PROMPT);
+    
     let renderedTemplate = template({ nodeTypeInfo:sourceCode });
     console.log(renderedTemplate);
 
@@ -93,10 +96,15 @@ const writeDocumentation = async (tree,projectPath) => {
     // let filePath= tree.rootNode.path;
     console.log(filePath);
 
+    
 
-const relativeFilePath = path.relative(projectPath, filePath);
+// const relativeFilePath = path.relative(projectPath, filePath);
 console.log(relativeFilePath); // Output: index.js
-    await codebolt.fs.updateFile('',relativeFilePath, sourceCode, 'utf8');
+    codebolt.fs.updateFile('',relativeFilePath, sourceCode, 'utf8');
+    codebolt.chat.sendMessage("I Have completed this documentation"+relativeFilePath);
+    codebolt.chat.stopProcess()
 };
+
+
 
 module.exports = { writeDocumentation };
