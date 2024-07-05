@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@codebolt/codeboltjs": "^1.1.37",
+    "@codebolt/codeboltjs": "^1.1.52",
     "esprima": "^4.0.1",
     "handlebars": "^4.7.8",
     "serialize-javascript": "^6.0.2",

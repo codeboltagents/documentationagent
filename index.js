@@ -3,13 +3,13 @@ const serialize = require('serialize-javascript');
 const codebolt = require("@codebolt/codeboltjs").default;
 const util = require('util');
 
-async function execute() {
+codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
   await codebolt.waitForConnection();
   codebolt.browser.newPage()
 
   // await codebolt.browser.goToPage("https://www.facebook.com/")
   
-  const message = await codebolt.chat.waitforReply("Hi I am Documnetation Agent,I will help you to create documentaion of your code");
+  const message = await codebolt.chat.waitforReply("");
 
   // console.log(message)
   codebolt.chat.processStarted();
@@ -24,7 +24,7 @@ async function execute() {
     writeDocumentation(tree,projectPath);
   });
   
-}
-(async () => {
-  await execute();
-})();
+})
+// (async () => {
+//   await execute();
+// })();
